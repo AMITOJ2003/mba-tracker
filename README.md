@@ -1,5 +1,7 @@
 # MBA Tracker
 
+**Live app:** https://amitoj2003.github.io/mba-tracker/ · **Sync data repo (private):** `AMITOJ2003/mba-tracker-data`
+
 A personal GMAT / MBA-application tracker that installs on your iPhone like a native app.
 Plain HTML + CSS + vanilla JS, no build step, no backend of its own. Works fully offline;
 data is stored on the device (IndexedDB), with optional sync to your laptop.
