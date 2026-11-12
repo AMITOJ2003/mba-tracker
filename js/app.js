@@ -243,8 +243,8 @@ function viewMocks() {
 
   if (A.n) {
     h += `<div class="mock-hero"><div class="hero-num num">${A.latest.total}</div>
-      ${A.delta != null ? `<div class="delta ${A.delta >= 0 ? 'good' : 'bad'}">${signed(A.delta)}</div>` : ''}</div>
-      <div class="label">Latest · avg of last ${Math.min(3, A.n)}: ${A.avg3} · best ${A.best.total} · target ${st.gmatTarget}</div>`;
+      ${A.delta != null ? `<div class="delta ${A.delta >= 0 ? 'good' : 'bad'}">${signed(A.delta)}</div>` : ''}
+      <div class="label">Latest · avg of last ${Math.min(3, A.n)}: ${A.avg3} · best ${A.best.total} · target ${st.gmatTarget}</div></div>`;
   } else {
     h += `<p class="muted" style="margin:0">Log each practice test here. After a few, you'll get a projection and section-by-section analysis.</p>
       <div class="gap"></div><button class="btn" data-act="add-score">Log your first mock</button>`;
@@ -265,19 +265,19 @@ function viewMocks() {
 
   const anyAcc = A.sections.some((s) => s.accuracy != null), anyPace = A.sections.some((s) => s.secPerQ != null);
   h += `<div class="h2">Sections <span class="faint xs" style="font-weight:400">last 3 mocks</span></div>
-    <table class="sec-table"><thead><tr><th></th><th>Latest</th><th>Avg</th><th>Change</th>${anyAcc ? '<th>Right</th>' : ''}${anyPace ? '<th>Per Q</th>' : ''}</tr></thead><tbody>
+    <div class="card" style="margin-top:0"><table class="sec-table"><thead><tr><th></th><th>Latest</th><th>Avg</th><th>Change</th>${anyAcc ? '<th>Right</th>' : ''}${anyPace ? '<th>Per Q</th>' : ''}</tr></thead><tbody>
     ${A.sections.map((s, i) => `<tr><td><span class="key" style="background:var(--s${i + 1})"></span>${s.label}</td>
       <td>${s.latest ?? '—'}</td><td>${s.avg3 == null ? '—' : Math.round(s.avg3)}</td>
       <td class="${s.change > 0 ? 'good' : s.change < 0 ? 'bad' : ''}">${s.change == null ? '—' : signed(s.change)}</td>
       ${anyAcc ? `<td>${s.accuracy == null ? '—' : `${Math.round(s.accuracy * 100)}%`}</td>` : ''}
       ${anyPace ? `<td>${fmtPace(s.secPerQ)}</td>` : ''}</tr>`).join('')}
-    </tbody></table>
+    </tbody></table></div>
     ${anyPace ? `<div class="hint">Time budget per question: Q ${fmtPace((SECTION_MINUTES * 60) / 21)} · V ${fmtPace((SECTION_MINUTES * 60) / 23)} · DI ${fmtPace((SECTION_MINUTES * 60) / 20)}</div>` : ''}`;
 
   if (A.errorTotal) {
     const max = Math.max(...A.errors.map((e) => e.n));
     h += `<div class="h2">Mistakes <span class="faint xs" style="font-weight:400">last 5 mocks</span></div>
-      ${A.errors.map((e) => `<div class="err-row"><span>${e.label}</span>${bar(e.n / max)}<span>${e.n}</span></div>`).join('')}`;
+      <div class="card" style="margin-top:0">${A.errors.map((e) => `<div class="err-row"><span>${e.label}</span>${bar(e.n / max)}<span>${e.n}</span></div>`).join('')}</div>`;
   }
 
   h += `<div class="h2">History</div><div class="list">`;
@@ -312,7 +312,12 @@ function viewSettings() {
   const st = S.settings, t = todayISO();
   let h = top('Settings');
 
-  h += `<div class="h2" style="margin-top:0">Targets</div><div class="list">`;
+  const theme = ls.get('theme') || 'auto';
+  h += `<div class="h2" style="margin-top:0">Appearance</div>
+    <div class="seg theme-seg" role="group" aria-label="Appearance">${[['auto', 'Auto'], ['light', 'Light'], ['dark', 'Dark']]
+      .map(([k, l]) => `<button data-act="theme" data-v="${k}" aria-pressed="${theme === k}">${l}</button>`).join('')}</div>`;
+
+  h += `<div class="h2">Targets</div><div class="list">`;
   h += [
     ['GMAT target', st.gmatTarget], ['GMAT minimum', st.gmatMin],
     ['Weekly study', `${st.weeklyHoursMin}–${st.weeklyHoursGoal} h`],
@@ -841,6 +846,14 @@ const ACTIONS = {
   'add-month': () => monthSheet(),
   'edit-month': (d) => monthSheet(find(S.checkpoints, d.id)),
   'cycle-month': (d) => { const c = find(S.checkpoints, d.id); c.status = CP_STATUSES[(CP_STATUSES.indexOf(c.status) + 1) % CP_STATUSES.length]; commit(); },
+  theme: (d) => {
+    if (d.v === 'auto') { ls.del('theme'); delete document.documentElement.dataset.theme; }
+    else { ls.set('theme', d.v); document.documentElement.dataset.theme = d.v; }
+    const metas = document.querySelectorAll('meta[name="theme-color"]');
+    metas[0].content = d.v === 'dark' ? '#141922' : '#f5f4f0';
+    metas[1].content = d.v === 'light' ? '#f5f4f0' : '#141922';
+    render();
+  },
   'sync-setup': () => syncSetupSheet(),
   'sync-now': () => runSync({ manual: true }),
   'sync-off': () => {

@@ -1,6 +1,6 @@
 // Offline support: precache the app shell, then serve cache-first and refresh in the background.
 // Bump CACHE when you change the file list below.
-const CACHE = 'mba-tracker-v2';
+const CACHE = 'mba-tracker-v3';
 const ASSETS = [
   './',
   './index.html',
